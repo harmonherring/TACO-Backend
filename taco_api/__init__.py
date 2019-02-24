@@ -1,5 +1,4 @@
-from functools import wraps
-import os
+from functools import wrapimport os
 
 import requests
 from flask import Flask, request, jsonify, session, redirect, url_for
@@ -28,12 +27,8 @@ def test():
 
 @app.route('/clients', methods=['GET', 'POST'])
 def get_clients():
-    if request.method == 'GET':
-        #return all clients
-        return False
-    else:
-        #creates new client
-        return False
+    if flask.request.method == 'GET':
+        return "all clients"
 
 @app.route('/tasks', methods=['GET'])
 def tasks():
