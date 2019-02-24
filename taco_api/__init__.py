@@ -1,4 +1,3 @@
-from functools import wraps
 import os
 
 import requests
@@ -25,3 +24,30 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 @app.route('/', methods=['GET'])
 def test():
     return "fuck you"
+
+@app.route('/clients', methods=['GET', 'POST'])
+def get_clients():
+    if request.method == 'GET':
+        return "all clients"
+    elif request.method == 'POST':
+        return False
+
+@app.route('/tasks', methods=['GET'])
+def tasks():
+    return "here some tasks"
+
+@app.route('/tasks/<uid>', methods=['GET', 'POST'])
+def get_tasks():
+    if request.method == 'GET':
+        #returns tasks for specified UID
+        return False
+    else:
+        #Updates the task ID by UID
+        return False
+
+@app.route('/clients/uid', methods=['POST'])
+def update():
+    #updates aspects of user ID by UID
+    return False
+
+#text commit
