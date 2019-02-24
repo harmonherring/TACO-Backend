@@ -29,7 +29,7 @@ def test():
 def get_clients():
     if request.method == 'GET':
         return "all clients"
-    else if request.method == 'POST':
+    elif request.method == 'POST':
         return False
 
 @app.route('/tasks', methods=['GET'])
