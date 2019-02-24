@@ -1,0 +1,7 @@
+Flask
+Flask-pyoidc==1.3.0
+Flask-Script
+Flask-SQLAlchemy
+PyMySQL
+SQLAlchemy
+flask-cors
