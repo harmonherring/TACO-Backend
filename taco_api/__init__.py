@@ -21,20 +21,52 @@ requests.packages.urllib3.disable_warnings()
 # Disable SQLAlchemy modification tracking
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
+class Task(db.Model):
+    __tablename__ = 'tasks'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
+    target = db.Column(db.String)
+    port = db.Column(db.Integer)
+    chunksize = db.Column(db.Integer)
+
+    def __init__(self, id, name, target, port, chunksize):
+        self.id = id
+        self.name = name
+        self.target = target
+        self.port = port
+        self.chunksize = chunksize
+
+
+class Client(db.Model):
+    __tablename__ = 'clients'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
+    task_id = db.Column(db.Integer)
+    active = db.Column(db.Integer)
+
+    def __init__(self, id, name, task_id, active):
+        self.id = id
+        self.name = name
+        self.task_id = task_id
+        self.active = active
+
+
 @app.route('/', methods=['GET'])
 def test():
-    return "fuck you"
+    return "dick..."
 
-@app.route('/clients', methods=['GET', 'POST'])
+@app.route('/clients', methods=['GET', 'PUT'])
 def get_clients():
     if request.method == 'GET':
-        return "all clients"
-    elif request.method == 'POST':
+        return parse_client_as_json(Client.query.all())
+    elif request.method == 'PUT':
         return False
 
 @app.route('/tasks', methods=['GET'])
 def tasks():
-    return "here some tasks"
+    return parse_task_as_json(Task.query.all())
 
 @app.route('/tasks/<uid>', methods=['GET', 'POST'])
 def get_tasks():
@@ -50,4 +82,31 @@ def update():
     #updates aspects of user ID by UID
     return False
 
-#text commit
+
+def parse_task_as_json(tasks: list):
+    json = []
+    for task in tasks:
+        json.append(return_task_json(task))
+    return jsonify(json)
+
+def return_task_json(task):
+    return {
+        'id': task.id,
+        'target': task.target,
+        'port': task.port,
+        'chunksize': task.chunksize,
+    }
+
+def parse_client_as_json(clients: list):
+    json = []
+    for client in clients:
+        json.append(return_client_json(client))
+    return jsonify(json)
+
+def return_client_json(client):
+    return {
+        'id': client.id,
+        'name': client.name,
+        'task_id': client.task_id,
+        'active': client.active,
+    }
