@@ -1,4 +1,3 @@
-from functools import wrap
 import os
 
 import requests
