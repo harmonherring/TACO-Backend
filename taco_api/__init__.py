@@ -8,6 +8,13 @@ from sqlalchemy import UniqueConstraint
 
 app = Flask(__name__)
 
+if os.path.exists(os.path.join(os.getcwd(), "config.py")):
+    app.config.from_pyfile(os.path.join(os.getcwd(), 'config.py'))
+else:
+    app.config.from_pyfile(os.path.join(os.getcwd(), 'config.env.py'))
+
+db = SQLAlchemy(app)
+
 # Disable SSL certificate verification warning
 requests.packages.urllib3.disable_warnings()
 
