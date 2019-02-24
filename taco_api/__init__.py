@@ -35,14 +35,9 @@ def get_clients():
         #creates new client
         return False
 
-@app.route('/tasks', methods=['GET','POST'])
+@app.route('/tasks', methods=['GET'])
 def tasks():
-    if request.method == 'GET':
-        #return all tasks
-        return False
-    else:
-        #creat a new task
-        return False
+    return "here some tasks"
 
 @app.route('/tasks/<uid>', methods=['GET', 'POST'])
 def get_tasks():
