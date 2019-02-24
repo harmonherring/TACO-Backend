@@ -27,8 +27,10 @@ def test():
 
 @app.route('/clients', methods=['GET', 'POST'])
 def get_clients():
-    if flask.request.method == 'GET':
+    if request.method == 'GET':
         return "all clients"
+    else if request.method == 'POST':
+        return False
 
 @app.route('/tasks', methods=['GET'])
 def tasks():
