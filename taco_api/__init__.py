@@ -4,6 +4,7 @@ import json
 
 import requests
 from flask import Flask, request, jsonify, session
+from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -20,6 +21,7 @@ requests.packages.urllib3.disable_warnings()
 
 # Disable SQLAlchemy modification tracking
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+cors = CORS(app, resources={r"/*":{"origins": "*"}})
 
 class Task(db.Model):
     __tablename__ = 'tasks'
