@@ -8,6 +8,7 @@ from flask_cors import CORS, cross_origin
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
+CORS(app)
 
 if os.path.exists(os.path.join(os.getcwd(), "config.py")):
     app.config.from_pyfile(os.path.join(os.getcwd(), 'config.py'))
@@ -69,7 +70,6 @@ def all_clients():
 
 
 @app.route('/tasks', methods=['GET', 'PUT'])
-@cross_origin()
 def all_tasks():
     if request.method == 'GET':
         return parse_task_as_json(Task.query.all()), 200
