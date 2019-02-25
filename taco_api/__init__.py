@@ -69,6 +69,7 @@ def all_clients():
 
 
 @app.route('/tasks', methods=['GET', 'PUT'])
+@cross_origin(headers=['Content-Type', 'Access-Control-Allow-Origin'])
 def all_tasks():
     if request.method == 'GET':
         return parse_task_as_json(Task.query.all()), 200
