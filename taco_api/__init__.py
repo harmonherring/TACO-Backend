@@ -116,7 +116,7 @@ def singular_task(uid):
         db.session.flush()
         db.session.commit()
         return jsonify(return_task_json(task)), 201
-    elif request.method = 'DELETE':
+    elif request.method == 'DELETE':
         Task.query.filter_by(id=uid).delete()
         db.session.flush()
         db.session.commit()
