@@ -91,11 +91,9 @@ def all_tasks():
         db.session.flush()
         db.session.commit()
         return jsonify(return_task_json(new_task)), 201
-    else:
-        return "Unsupported HTTP Method", 400
 
 
-@app.route('/tasks/<uid>', methods=['GET', 'PUT'])
+@app.route('/tasks/<uid>', methods=['GET', 'PUT', 'DELETE'])
 def singular_task(uid):
     if request.method == 'GET':
         return parse_task_as_json(Task.query.filter_by(id=uid).all()), 200
@@ -118,12 +116,15 @@ def singular_task(uid):
         db.session.flush()
         db.session.commit()
         return jsonify(return_task_json(task)), 201
-    else:
-        return "Unsupported HTTP Method", 400
+    elif request.method = 'DELETE':
+        Task.query.filter_by(id=uid).delete()
+        db.session.flush()
+        db.session.commit()
+        return "Success", 200
 
 
 
-@app.route('/clients/<uid>', methods=['GET', 'PUT'])
+@app.route('/clients/<uid>', methods=['GET', 'PUT', 'DELETE'])
 def singular_client(uid):
     if request.method == 'GET':
         return parse_client_as_json(Client.query.filter_by(id=uid).all()), 200
@@ -143,8 +144,11 @@ def singular_client(uid):
         db.session.flush()
         db.session.commit()
         return jsonify(return_client_json(client)), 201
-    else:
-        return "Unsupported HTTP Method", 400
+    elif request.method == 'DELETE':
+        Client.query.filter_by(id=uid).delete()
+        db.session.flush()
+        db.session.commit()
+        return "Success", 200
 
 
 def parse_task_as_json(tasks: list):
