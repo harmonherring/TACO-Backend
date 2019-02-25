@@ -81,9 +81,9 @@ def all_tasks():
         chunksize = request.args.get('chunksize')
 
         # Create uuid
-        id = randint(0, 9999999999)
+        id = randint(0, 999999999)
         while not is_key_unique(id):
-            id = randint(0, 9999999999)
+            id = randint(0, 999999999)
 
         # Add New Task
         new_task = Task(id=id, name=name, target=target, port=port, chunksize=chunksize)
