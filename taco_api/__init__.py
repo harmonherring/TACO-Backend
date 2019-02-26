@@ -101,7 +101,7 @@ def singular_task(uid):
         # Get Data for the matching task
         task = Task.query.filter_by(id=uid).first()
         task.name = request.args.get('name')
-
+        print(task.name)
         # Determine what data is in the PUT method, fill in the blanks
         if request.args.get('name'):
             task.name = request.args.get('name')
@@ -130,10 +130,11 @@ def singular_client(uid):
         return parse_client_as_json(Client.query.filter_by(id=uid).all()), 200
     elif request.method == 'PUT':
         # Get data for referenced client
-        client = return_client_json(Client.query.filter_by(id=uid).all()[0])
+        client = Client.query.filter_by(id=uid).first()
 
         # Determine what is being changed
         if request.args.get('name'):
+            print(request.args.get('name'))
             client.name = request.args.get('name')
         if request.args.get('task_id'):
             client.task_id = request.args.get('task_id')
@@ -149,6 +150,20 @@ def singular_client(uid):
         db.session.flush()
         db.session.commit()
         return "Success", 200
+
+
+@app.route('/clients/<uid>/toggle', methods=['PUT'])
+def toggle_active(uid):
+    client = Client.query.filter_by(id=uid).first()
+
+    if client.active == 0:
+        client.active = 1
+    else:
+        client.active = 0
+
+    db.session.flush()
+    db.session.commit()
+    return jsonify(return_client_json(client)), 201
 
 
 def parse_task_as_json(tasks: list):
