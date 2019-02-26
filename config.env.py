@@ -6,4 +6,4 @@ PORT = os.environ.get('API_PORT', 8080)
 
 # Database
 SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI')
-
+SQLALCHEMY_POOL_RECYCLE = 500;
