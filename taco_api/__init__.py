@@ -170,7 +170,7 @@ def singular_client(uid):
 def toggle_active(uid):
     client = Client.query.filter_by(id=uid).first()
 
-    if client.active == 0:
+    if not client.active:
         client.active = 1
     else:
         client.active = 0
