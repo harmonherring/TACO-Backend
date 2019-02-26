@@ -66,7 +66,21 @@ def all_clients():
     if request.method == 'GET':
         return parse_client_as_json(Client.query.all())
     elif request.method == 'PUT':
-        return False
+        name = request.args.get('name')
+        task_id = request.args.get('task_id')
+        active = request.args.get('active')
+
+        # Create uuid
+        id = randint(0, 999999999)
+        while not is_client_key_unique(id):
+            id = randint(0, 999999999)
+
+        # Add client to database
+        new_client = Client(id=id, name=name, task_id=task_id, active=active)
+        db.session.add(new_client)
+        db.session.flush()
+        db.session.commit()
+        return jsonify(id), 201
 
 
 @app.route('/tasks', methods=['GET', 'PUT'])
@@ -82,7 +96,7 @@ def all_tasks():
 
         # Create uuid
         id = randint(0, 999999999)
-        while not is_key_unique(id):
+        while not is_task_key_unique(id):
             id = randint(0, 999999999)
 
         # Add New Task
@@ -198,7 +212,14 @@ def return_client_json(client):
         'active': client.active,
     }
 
-def is_key_unique(key):
+
+def is_task_key_unique(key):
     if Task.query.filter_by(id=key).all():
+        return False
+    return True
+
+
+def is_client_key_unique(key):
+    if Client.query.filter_by(id=key).all():
         return False
     return True
