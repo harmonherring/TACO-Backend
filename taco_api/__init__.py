@@ -32,13 +32,15 @@ class Task(db.Model):
     target = db.Column(db.String)
     port = db.Column(db.Integer)
     chunksize = db.Column(db.Integer)
+    active = db.Column(db.Integer)
 
-    def __init__(self, id, name, target, port, chunksize):
+    def __init__(self, id, name, target, port, chunksize, active):
         self.id = id
         self.name = name
         self.target = target
         self.port = port
         self.chunksize = chunksize
+        self.active = active
 
 
 class Client(db.Model):
@@ -93,6 +95,7 @@ def all_tasks():
         target = request.args.get('target')
         port = request.args.get('port')
         chunksize = request.args.get('chunksize')
+        active = request.args.get('active')
 
         # Create uuid
         id = randint(0, 999999999)
@@ -100,7 +103,12 @@ def all_tasks():
             id = randint(0, 999999999)
 
         # Add New Task
-        new_task = Task(id=id, name=name, target=target, port=port, chunksize=chunksize)
+        new_task = Task(id=id,
+                        name=name,
+                        target=target,
+                        port=port,
+                        chunksize=chunksize,
+                        active=active)
         db.session.add(new_task)
         db.session.flush()
         db.session.commit()
@@ -114,8 +122,6 @@ def singular_task(uid):
     elif request.method == 'PUT':
         # Get Data for the matching task
         task = Task.query.filter_by(id=uid).first()
-        task.name = request.args.get('name')
-        print(task.name)
         # Determine what data is in the PUT method, fill in the blanks
         if request.args.get('name'):
             task.name = request.args.get('name')
@@ -125,6 +131,8 @@ def singular_task(uid):
             task.port = request.args.get('port')
         if request.args.get('chunksize'):
             task.chunksize = request.args.get('chunksize')
+        if request.args.get('active'):
+            task.active = request.args.get('active')
 
         # Perform update
         db.session.flush()
@@ -180,6 +188,20 @@ def toggle_active(uid):
     return jsonify(return_client_json(client)), 201
 
 
+@app.route('/tasks/<uid>/toggle', methods=['PUT'])
+def task_toggle_active(uid):
+    task = Task.query.filter_by(id=uid).first()
+
+    if not task.active:
+        task.active = 1
+    else:
+        task.active = 0
+
+    db.session.flush()
+    db.session.commit()
+    return jsonify(return_task_json(task)), 201
+
+
 def parse_task_as_json(tasks: list):
     json = []
     for task in tasks:
@@ -194,6 +216,7 @@ def return_task_json(task):
         'target': task.target,
         'port': task.port,
         'chunksize': task.chunksize,
+        'active': task.active,
     }
 
 
