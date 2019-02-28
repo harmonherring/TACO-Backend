@@ -50,12 +50,14 @@ class Client(db.Model):
     name = db.Column(db.String)
     task_id = db.Column(db.Integer)
     active = db.Column(db.Integer)
+    last_online = db.Column(db.Date)
 
     def __init__(self, id, name, task_id, active):
         self.id = id
         self.name = name
         self.task_id = task_id
         self.active = active
+        self.last_online = last_online
 
 
 @app.route('/', methods=['GET'])
@@ -70,12 +72,18 @@ def all_clients():
     elif request.method == 'PUT':
         name = request.args.get('name')
         task_id = request.args.get('task_id')
-        active = request.args.get('active')
+        if request.args.get('active'):
+            active = request.args.get('active')
+        else:
+            active = 1
 
         # Create uuid
         id = randint(0, 999999999)
         while not is_client_key_unique(id):
             id = randint(0, 999999999)
+
+        # Create last_online date
+
 
         # Add client to database
         new_client = Client(id=id, name=name, task_id=task_id, active=active)
@@ -156,12 +164,13 @@ def singular_client(uid):
 
         # Determine what is being changed
         if request.args.get('name'):
-            print(request.args.get('name'))
             client.name = request.args.get('name')
         if request.args.get('task_id'):
             client.task_id = request.args.get('task_id')
         if request.args.get('active'):
             client.active = request.args.get('active')
+        if request.args.get('last_online'):
+            client.last_online = request.args.get('last_online')
 
         # Perform update
         db.session.flush()
