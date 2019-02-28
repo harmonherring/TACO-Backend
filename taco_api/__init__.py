@@ -1,7 +1,7 @@
 import os
 from random import randint
 import json
-import datetime
+import time
 
 import requests
 from flask import Flask, request, jsonify, session
@@ -84,7 +84,7 @@ def all_clients():
             id = randint(0, 999999999)
 
         # Create last_online date
-        last_online = datetime.datetime()
+        last_online = time.strftime('%Y-%m-%d %H:%M:%S')
 
         # Add client to database
         new_client = Client(id=id,
