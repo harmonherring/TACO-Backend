@@ -1,6 +1,7 @@
 import os
 from random import randint
 import json
+import datetime
 
 import requests
 from flask import Flask, request, jsonify, session
@@ -50,9 +51,9 @@ class Client(db.Model):
     name = db.Column(db.String)
     task_id = db.Column(db.Integer)
     active = db.Column(db.Integer)
-    last_online = db.Column(db.Date)
+    last_online = db.Column(db.DateTime)
 
-    def __init__(self, id, name, task_id, active):
+    def __init__(self, id, name, task_id, active, last_online):
         self.id = id
         self.name = name
         self.task_id = task_id
@@ -83,10 +84,14 @@ def all_clients():
             id = randint(0, 999999999)
 
         # Create last_online date
-
+        last_online = datetime.datetime()
 
         # Add client to database
-        new_client = Client(id=id, name=name, task_id=task_id, active=active)
+        new_client = Client(id=id,
+                            name=name,
+                            task_id=task_id,
+                            active=active,
+                            last_online=last_online)
         db.session.add(new_client)
         db.session.flush()
         db.session.commit()
