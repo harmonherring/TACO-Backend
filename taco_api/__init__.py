@@ -162,7 +162,15 @@ def singular_task(uid):
 @app.route('/clients/<uid>', methods=['GET', 'PUT', 'DELETE'])
 def singular_client(uid):
     if request.method == 'GET':
-        return parse_client_as_json(Client.query.filter_by(id=uid).all()), 200
+        client = Client.query.filter_by(id=uid).first()
+        if client:
+            last_online = time.strftime('%Y-%m-%d %H:%M:%S')
+            client.last_online = last_online
+            db.session.flush()
+            db.session.commit()
+            return jsonify(return_client_json(client)), 200
+        else:
+            return "Invalid Client", 404
     elif request.method == 'PUT':
         # Get data for referenced client
         client = Client.query.filter_by(id=uid).first()
