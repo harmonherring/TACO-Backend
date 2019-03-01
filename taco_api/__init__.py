@@ -2,6 +2,7 @@ import os
 from random import randint
 import json
 import time
+import datetime
 
 import requests
 from flask import Flask, request, jsonify, session
@@ -164,7 +165,8 @@ def singular_client(uid):
     if request.method == 'GET':
         client = Client.query.filter_by(id=uid).first()
         if client:
-            last_online = time.strftime('%Y-%m-%d %H:%M:%S')
+            ts = time.time()
+            last_online = datetime.datetime.fromtimestamp(ts).strftime('%m-%d-%Y %H:%M:%S')
             client.last_online = last_online
             db.session.flush()
             db.session.commit()
