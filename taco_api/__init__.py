@@ -255,6 +255,7 @@ def return_client_json(client):
         'name': client.name,
         'task_id': client.task_id,
         'active': client.active,
+        'last_online': client.last_online,
     }
 
 
