@@ -69,6 +69,10 @@ def test():
 
 @app.route('/clients', methods=['GET', 'PUT'])
 def all_clients():
+    """
+    :GET: returns all clients and their respective data
+    :PUT: creates a client object, adds it to the database, and returns it
+    """
     if request.method == 'GET':
         return parse_client_as_json(Client.query.all())
     elif request.method == 'PUT':
@@ -101,6 +105,10 @@ def all_clients():
 
 @app.route('/tasks', methods=['GET', 'PUT'])
 def all_tasks():
+    """
+    :GET: returns all tasks and their respective data
+    :PUT: creates a task
+    """
     if request.method == 'GET':
         return parse_task_as_json(Task.query.all()), 200
     elif request.method == 'PUT':
@@ -131,6 +139,12 @@ def all_tasks():
 
 @app.route('/tasks/<uid>', methods=['GET', 'PUT', 'DELETE'])
 def singular_task(uid):
+    """
+    :param uid: unique ID of a task
+    :GET: gets data for task identified by UID
+    :PUT: modifies data for task identified by UID
+    :DELETE: deletes task identified by UID
+    """
     if request.method == 'GET':
         return parse_task_as_json(Task.query.filter_by(id=uid).all()), 200
     elif request.method == 'PUT':
@@ -159,17 +173,17 @@ def singular_task(uid):
         return "Success", 200
 
 
-
 @app.route('/clients/<uid>', methods=['GET', 'PUT', 'DELETE'])
 def singular_client(uid):
+    """
+    :param uid: unique ID for client
+    :GET: returns data for client identified by UID
+    :PUT: modifies specified data for client identified by UID
+    :DELETE: deletes client specified by UID
+    """
     if request.method == 'GET':
         client = Client.query.filter_by(id=uid).first()
         if client:
-            ts = time.time()
-            last_online = datetime.datetime.fromtimestamp(ts).strftime('%m-%d-%Y %H:%M:%S')
-            client.last_online = last_online
-            db.session.flush()
-            db.session.commit()
             return jsonify(return_client_json(client)), 200
         else:
             return "Invalid Client", 404
@@ -200,6 +214,11 @@ def singular_client(uid):
 
 @app.route('/clients/<uid>/toggle', methods=['PUT'])
 def toggle_active(uid):
+    """
+    Toggles the "active" element of the client specified by UID
+    :param uid: identifier for client to toggle the activity of
+    :return: client object
+    """
     client = Client.query.filter_by(id=uid).first()
 
     if not client.active:
@@ -214,6 +233,11 @@ def toggle_active(uid):
 
 @app.route('/tasks/<uid>/toggle', methods=['PUT'])
 def task_toggle_active(uid):
+    """
+    Toggles the "active" element of the task specified by UID
+    :param uid: identifier for task to toggle activity of
+    :return: task object
+    """
     task = Task.query.filter_by(id=uid).first()
 
     if not task.active:
@@ -226,7 +250,27 @@ def task_toggle_active(uid):
     return jsonify(return_task_json(task)), 201
 
 
+@app.route('/<zombie_uid>', methods=['GET'])
+def get_zombie_assignment(zombie_uid):
+    client = Client.query.filter_by(id=uid).first()
+    if client:
+        ts = time.time()
+        last_online = datetime.datetime.fromtimestamp(ts).strftime('%m/%d/%Y %I:%M:%S %p')
+        client.last_online = last_online
+        db.session.flush()
+        db.session.commit()
+        return jsonify(return_client_json(client)), 200
+    else:
+        return "Invalid Client", 404
+
+
 def parse_task_as_json(tasks: list):
+    """
+    Accepts a list of tasks and then translates it to a jsonified list of
+    task objects
+    :param tasks: tasks to transform
+    :return: list of task objects
+    """
     json = []
     for task in tasks:
         json.append(return_task_json(task))
@@ -234,6 +278,11 @@ def parse_task_as_json(tasks: list):
 
 
 def return_task_json(task):
+    """
+    Accepts a task and turns it into a json object
+    :param task: task
+    :return: task object
+    """
     return {
         'id': task.id,
         'name': task.name,
@@ -245,6 +294,12 @@ def return_task_json(task):
 
 
 def parse_client_as_json(clients: list):
+    """
+    Accepts a list of clients and then translates it to a jsonified list of
+    client objects
+    :param clients: clients to transform
+    :return: list of clients objects
+    """
     json = []
     for client in clients:
         json.append(return_client_json(client))
@@ -252,6 +307,11 @@ def parse_client_as_json(clients: list):
 
 
 def return_client_json(client):
+    """
+    Accepts a client and turns it into a json object
+    :param client: task
+    :return: client object
+    """
     return {
         'id': client.id,
         'name': client.name,
@@ -262,12 +322,22 @@ def return_client_json(client):
 
 
 def is_task_key_unique(key):
+    """
+    Checks to see if a key exists in the task table
+    :param key: key to check
+    :return: true if key is unique, false otherwise
+    """
     if Task.query.filter_by(id=key).all():
         return False
     return True
 
 
 def is_client_key_unique(key):
+    """
+    Checks to see if a key exists in the client table
+    :param key: key to check existence of
+    :return: true if key is unique, false otherwise
+    """
     if Client.query.filter_by(id=key).all():
         return False
     return True
