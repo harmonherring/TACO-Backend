@@ -284,7 +284,7 @@ def return_task_json(task):
     :return: task object
     """
     return {
-        'id': task.id,
+        'uid': task.uid,
         'name': task.name,
         'target': task.target,
         'port': task.port,
@@ -313,7 +313,7 @@ def return_client_json(client):
     :return: client object
     """
     return {
-        'id': client.id,
+        'uid': client.uid,
         'name': client.name,
         'task_id': client.task_id,
         'active': client.active,
