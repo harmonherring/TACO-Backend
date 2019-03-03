@@ -29,7 +29,7 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 class Task(db.Model):
     __tablename__ = 'tasks'
 
-    id = db.Column(db.Integer, primary_key=True)
+    uid = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
     target = db.Column(db.String)
     port = db.Column(db.Integer)
@@ -48,7 +48,7 @@ class Task(db.Model):
 class Client(db.Model):
     __tablename__ = 'clients'
 
-    id = db.Column(db.Integer, primary_key=True)
+    uid = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
     task_id = db.Column(db.Integer)
     active = db.Column(db.Integer)
@@ -146,10 +146,10 @@ def singular_task(uid):
     :DELETE: deletes task identified by UID
     """
     if request.method == 'GET':
-        return parse_task_as_json(Task.query.filter_by(id=uid).all()), 200
+        return parse_task_as_json(Task.query.filter_by(uid=uid).all()), 200
     elif request.method == 'PUT':
         # Get Data for the matching task
-        task = Task.query.filter_by(id=uid).first()
+        task = Task.query.filter_by(uid=uid).first()
         # Determine what data is in the PUT method, fill in the blanks
         if request.args.get('name'):
             task.name = request.args.get('name')
@@ -167,7 +167,7 @@ def singular_task(uid):
         db.session.commit()
         return jsonify(return_task_json(task)), 201
     elif request.method == 'DELETE':
-        Task.query.filter_by(id=uid).delete()
+        Task.query.filter_by(uid=uid).delete()
         db.session.flush()
         db.session.commit()
         return "Success", 200
@@ -182,14 +182,14 @@ def singular_client(uid):
     :DELETE: deletes client specified by UID
     """
     if request.method == 'GET':
-        client = Client.query.filter_by(id=uid).first()
+        client = Client.query.filter_by(uid=uid).first()
         if client:
             return jsonify(return_client_json(client)), 200
         else:
             return "Invalid Client", 404
     elif request.method == 'PUT':
         # Get data for referenced client
-        client = Client.query.filter_by(id=uid).first()
+        client = Client.query.filter_by(uid=uid).first()
 
         # Determine what is being changed
         if request.args.get('name'):
@@ -206,7 +206,7 @@ def singular_client(uid):
         db.session.commit()
         return jsonify(return_client_json(client)), 201
     elif request.method == 'DELETE':
-        Client.query.filter_by(id=uid).delete()
+        Client.query.filter_by(uid=uid).delete()
         db.session.flush()
         db.session.commit()
         return "Success", 200
@@ -219,7 +219,7 @@ def toggle_active(uid):
     :param uid: identifier for client to toggle the activity of
     :return: client object
     """
-    client = Client.query.filter_by(id=uid).first()
+    client = Client.query.filter_by(uid=uid).first()
 
     if not client.active:
         client.active = 1
@@ -238,7 +238,7 @@ def task_toggle_active(uid):
     :param uid: identifier for task to toggle activity of
     :return: task object
     """
-    task = Task.query.filter_by(id=uid).first()
+    task = Task.query.filter_by(uid=uid).first()
 
     if not task.active:
         task.active = 1
@@ -252,7 +252,7 @@ def task_toggle_active(uid):
 
 @app.route('/<zombie_uid>', methods=['GET'])
 def get_zombie_assignment(zombie_uid):
-    client = Client.query.filter_by(id=zombie_uid).first()
+    client = Client.query.filter_by(uid=zombie_uid).first()
     if client:
         ts = time.time()
         last_online = datetime.datetime.fromtimestamp(ts).strftime('%m/%d/%Y %I:%M:%S %p')
@@ -327,7 +327,7 @@ def is_task_key_unique(key):
     :param key: key to check
     :return: true if key is unique, false otherwise
     """
-    if Task.query.filter_by(id=key).all():
+    if Task.query.filter_by(uid=key).all():
         return False
     return True
 
@@ -338,6 +338,6 @@ def is_client_key_unique(key):
     :param key: key to check existence of
     :return: true if key is unique, false otherwise
     """
-    if Client.query.filter_by(id=key).all():
+    if Client.query.filter_by(uid=key).all():
         return False
     return True
