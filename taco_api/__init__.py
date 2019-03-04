@@ -36,8 +36,8 @@ class Task(db.Model):
     chunksize = db.Column(db.Integer)
     active = db.Column(db.Integer)
 
-    def __init__(self, id, name, target, port, chunksize, active):
-        self.id = id
+    def __init__(self, uid, name, target, port, chunksize, active):
+        self.uid = uid
         self.name = name
         self.target = target
         self.port = port
@@ -54,8 +54,8 @@ class Client(db.Model):
     active = db.Column(db.Integer)
     last_online = db.Column(db.DateTime)
 
-    def __init__(self, id, name, task_id, active, last_online):
-        self.id = id
+    def __init__(self, uid, name, task_id, active, last_online):
+        self.uid = uid
         self.name = name
         self.task_id = task_id
         self.active = active
@@ -84,15 +84,15 @@ def all_clients():
             active = 1
 
         # Create uuid
-        id = randint(0, 999999999)
+        uid = randint(0, 999999999)
         while not is_client_key_unique(id):
-            id = randint(0, 999999999)
+            uid = randint(0, 999999999)
 
         # Create last_online date
         last_online = time.strftime('%Y-%m-%d %H:%M:%S')
 
         # Add client to database
-        new_client = Client(id=id,
+        new_client = Client(uid=uid,
                             name=name,
                             task_id=task_id,
                             active=active,
@@ -120,12 +120,12 @@ def all_tasks():
         active = request.args.get('active')
 
         # Create uuid
-        id = randint(0, 999999999)
+        uid = randint(0, 999999999)
         while not is_task_key_unique(id):
-            id = randint(0, 999999999)
+            uid = randint(0, 999999999)
 
         # Add New Task
-        new_task = Task(id=id,
+        new_task = Task(uid=uid,
                         name=name,
                         target=target,
                         port=port,
