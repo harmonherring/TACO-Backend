@@ -121,7 +121,7 @@ def all_tasks():
 
         # Create uuid
         uid = randint(0, 999999999)
-        while not is_task_key_unique(id):
+        while not is_task_key_unique(uid):
             uid = randint(0, 999999999)
 
         # Add New Task
