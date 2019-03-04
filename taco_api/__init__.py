@@ -64,6 +64,17 @@ class Client(db.Model):
         self.last_online = last_online
 
 
+class Setting(db.Model):
+    __tablename__ = "settings"
+
+    name = db.Column(db.String, primary_key=True)
+    value = db.Column(db.String)
+
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value
+
+
 @app.route('/', methods=['GET'])
 def test():
     return "dick..."
@@ -281,6 +292,73 @@ def get_zombie_assignment(zombie_uid):
         return jsonify(return_client_json(client)), 200
     else:
         return "Invalid Client", 404
+
+
+@app.route('/settings', methods=['GET', 'PUT'])
+def settings():
+    if request.method == 'GET':
+        return parse_settings_as_json(Setting.query.all()), 200
+    elif request.method == 'PUT':
+        name = request.args.get('name')
+        value = request.args.get('value')
+        setting = Setting.query.filter_by(name=name).first()
+        if not setting:
+            # If there are no settings with a matching name
+            if not name:
+                return ""
+            new_setting = Setting(name, value)
+            db.session.add(new_setting)
+            db.session.flush()
+            db.session.commit()
+            return jsonify(return_setting_json(new_setting)), 201
+        else:
+            setting.value = value
+            db.session.flush()
+            db.session.commit()
+            return jsonify(return_setting_json(setting)), 201
+
+
+@app.route('/settings/<name>', methods=['GET', 'PUT', 'DELETE'])
+def setting(name):
+    if request.method == 'GET':
+        setting = Setting.query.filter_by(name=name).first()
+        if not setting:
+            return "Invalid Setting", 404
+        else:
+            return jsonify(return_setting_json(setting)), 200
+    elif request.method == 'PUT':
+        value = request.args.get('value')
+        setting = Setting.query.filter_by(name=name).first()
+        if not setting:
+            new_setting = Setting(name, value)
+            db.session.add(new_setting)
+            db.session.flush()
+            db.session.commit()
+            return jsonify(return_setting_json(new_setting)), 201
+        else:
+            setting.value = value
+            db.session.flush()
+            db.session.commit()
+            return jsonify(return_setting_json(setting)), 201
+    elif request.method == 'DELETE':
+        Setting.query.filter_by(name=name).delete()
+        db.session.flush()
+        db.session.commit()
+        return "Successfully Deleted", 202
+
+
+def parse_settings_as_json(settings: list):
+    return_val = []
+    for setting in settings:
+        return_val.append(return_setting_json(setting))
+    return jsonify(return_val)
+
+
+def return_setting_json(setting):
+    return {
+        'name':setting.name,
+        'value':setting.value,
+    }
 
 
 def parse_task_as_json(tasks: list):
