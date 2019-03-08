@@ -174,7 +174,7 @@ def singular_task(uid):
     :DELETE: deletes task identified by UID
     """
     if request.method == 'GET':
-        return parse_task_as_json(Task.query.filter_by(uid=uid).all()), 200
+        return return_task_json(Task.query.filter_by(uid=uid).first()), 200
     elif request.method == 'PUT':
         # Get Data for the matching task
         task = Task.query.filter_by(uid=uid).first()
