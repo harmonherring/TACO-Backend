@@ -113,7 +113,7 @@ def all_clients():
         db.session.add(new_client)
         db.session.flush()
         db.session.commit()
-        return jsonify(id), 201
+        return jsonify(uid), 201
 
 
 @app.route('/tasks', methods=['GET', 'PUT'])
