@@ -75,9 +75,25 @@ class Setting(db.Model):
         self.value = value
 
 
+class Uptime(db.Model):
+    __tablename__ = "uptime_monitor"
+
+    id = db.Column(db.Integer, primary_key=True)
+    task_id = db.Column(db.Integer)
+    data_type = db.Column(db.Integer)
+    time = db.Column(db.BigInteger)
+    value = db.Column(db.Integer)
+
+    def __init__(self, task_id, data_type, time, value):
+        self.task_id = task_id
+        self.data_type = data_type
+        self.time = time
+        self.value = value
+
+
 @app.route('/', methods=['GET'])
 def test():
-    return "dick..."
+    return "dicks..."
 
 
 @app.route('/clients', methods=['GET', 'PUT'])
@@ -282,6 +298,13 @@ def task_toggle_active(uid):
 
 @app.route('/<zombie_uid>', methods=['GET'])
 def get_zombie_assignment(zombie_uid):
+    """
+    Zombie-specific endpoint for the zombie clients.
+    Returns the object associated with that zombie/client, and also updates
+    the last_online time in the database.
+    :param zombie_uid: UID of the zombie trying to connect
+    :return: json object with zombie-specific data
+    """
     client = Client.query.filter_by(uid=zombie_uid).first()
     if client:
         ts = time.time()
@@ -296,6 +319,11 @@ def get_zombie_assignment(zombie_uid):
 
 @app.route('/settings', methods=['GET', 'PUT'])
 def settings():
+    """
+    :GET: Gets all settings and their associated values
+    :PUT: Requires 'name' and 'value' request arguments, which create a new
+            setting with name 'name' and value 'value'
+    """
     if request.method == 'GET':
         return parse_settings_as_json(Setting.query.all()), 200
     elif request.method == 'PUT':
@@ -320,6 +348,11 @@ def settings():
 
 @app.route('/settings/<name>', methods=['GET', 'PUT', 'DELETE'])
 def setting(name):
+    """
+    :GET: Access a specific setting by name
+    :PUT: Requires request argument 'value' and creates a setting with <name>
+    :DELETE: deletes setting with <name>
+    """
     if request.method == 'GET':
         setting = Setting.query.filter_by(name=name).first()
         if not setting:
@@ -347,7 +380,72 @@ def setting(name):
         return "Successfully Deleted", 202
 
 
+@app.route('/uptimes', methods=['GET'])
+def get_latest_response_time():
+    """
+    Returns latest response time for each task
+    """
+    tasks = parse_task_as_list(Task.query.all())
+    return latest_uptime_json(tasks), 200
+
+
+@app.route('/uptimes/<task_id>', methods=['GET'])
+def get_data(task_id):
+    """
+    Returns all uptime data for the task associated with <task_id>
+    """
+    uptime = Uptime.query.filter_by(task_id=task_id)
+    if (uptime):
+        return parse_uptimes_as_json(uptime), 200
+    else:
+        return "Task Doesn't Exist!", 404
+
+
+
+def parse_uptime(uptime):
+    """
+    Returns an uptime object
+    """
+    return {
+        'task_id':uptime.task_id,
+        'data_type':uptime.data_type,
+        'time':uptime.time,
+        'value':uptime.value,
+    }
+
+
+def latest_uptime_json(tasks : list):
+    """
+    Accepts a Task query and returns the latest time to ping each host, time
+    pulled from the uptime_monitor database
+    """
+    return_val = []
+    for task in tasks:
+        uptime = Uptime.query.filter_by(task_id=task["uid"]).order_by(Uptime.time.desc()).first()
+        print(parse_uptime(uptime))
+        return_val.append(parse_uptime(uptime))
+    return jsonify(return_val)
+
+
+def parse_uptimes_as_json(uptimes: list):
+    """
+    Accepts a list of uptimes and then translates it to a jsonified list of
+    uptime objects
+    :param uptimes: uptimes to transform
+    :return: list of uptime objects
+    """
+    return_val = [];
+    for uptime in uptimes:
+        return_val.append(parse_uptime(uptime))
+    return jsonify(return_val)
+
+
 def parse_settings_as_json(settings: list):
+    """
+    Returns json list of all Settings passed to this function
+    :param settings: settings query, list format
+    :return: json list of Setting objects
+    """
     return_val = []
     for setting in settings:
         return_val.append(return_setting_json(setting))
@@ -355,6 +453,9 @@ def parse_settings_as_json(settings: list):
 
 
 def return_setting_json(setting):
+    """
+    Returns a Setting object
+    """
     return {
         'name':setting.name,
         'value':setting.value,
@@ -372,6 +473,18 @@ def parse_task_as_json(tasks: list):
     for task in tasks:
         json.append(return_task_json(task))
     return jsonify(json)
+
+
+def parse_task_as_list(tasks: list):
+    """
+    Accepts a list of tasks and then translates it to a list of task objects
+    :param tasks: tasks to transform
+    :return: list of task objects
+    """
+    json = []
+    for task in tasks:
+        json.append(return_task_json(task))
+    return json
 
 
 def return_task_json(task):
