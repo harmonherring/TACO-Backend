@@ -100,7 +100,7 @@ def activate_job():
         Runs every couple of minutes, pings every host for task, records the
         response times in the uptime_monitor database.
 
-        Value 'monitor_refresh' in settings specifies number of seconds between
+        Value 'monitor_interval' in settings specifies number of seconds between
         response measuring
 
         Value 'max_responses_displayed' specifies the maximum number of
@@ -109,38 +109,47 @@ def activate_job():
         Value 'max-responses_recorded' specifies the maximum number of
         responses that should be recorded in the database.
         """
-        if Setting.query.filter_by(name="monitor_refresh").first():
-            refresh_time = return_setting_json(Setting.query.filter_by(name="monitor_refresh").first())['value']
+        # If monitor_interval setting is set, use the associated value
+        if Setting.query.filter_by(name="monitor_interval").first():
+            refresh_time = return_setting_json(Setting.query.filter_by(name="monitor_interval").first())['value']
             print(refresh_time)
         else:
             refresh_time = 600
         threading.Timer(refresh_time, get_task_response_times).start()
         tasks = parse_task_as_list(Task.query.all())
+        # For every task, do some stuff
         for task in tasks:
+            # Prepend with http, this works for now but needs to be replaced
             if task['target'][0:4].lower() != "http":
                 target = "http://" + task['target']
             else:
                 target = task['target']
+            # Log response time, if unsuccessful set response time to -1
             try:
                 ping_time = requests.get(target, headers={'Cache-Control': 'no-cache'}).elapsed.total_seconds() * 1000
             except:
                 ping_time = -1
+            # Create new response log
             new_uptime = Uptime(task_id=task['uid'],
                                 data_type=1,
                                 time=int(time.time()),
                                 value=ping_time)
-            print(parse_uptime(new_uptime))
+            # Get number of response logs to see if we have too many logs
             num = Uptime.query.filter_by(task_id=task['uid']).count()
+            # Also get maximum number of allowed entries... 0 = infinite
             if Setting.query.filter_by(name="max_responses_recorded").first():
                 max_responses_recorded = int(return_setting_json(Setting.query.filter_by(name="max_responses_recorded").first())['value'])
             else:
                 max_responses_recorded = 1000
+            # While the number of logs is greater than the allowed number,
+            # delete the oldest
             while (num > max_responses_recorded) and (max_responses_recorded != 0):
                 to_delete = Uptime.query.filter_by(task_id=task['uid']).order_by(Uptime.time.asc()).first()
                 db.session.delete(to_delete)
                 db.session.flush()
                 db.session.commit()
                 num = Uptime.query.filter_by(task_id=task['uid']).count()
+            # Finally add the new response log
             db.session.add(new_uptime)
             db.session.flush()
             db.session.commit()
@@ -149,6 +158,9 @@ def activate_job():
 
 @app.route('/', methods=['GET'])
 def test():
+    """
+    Update this to return some pretty documentation
+    """
     return "dicks..."
 
 
