@@ -3,11 +3,13 @@ from random import randint
 import json
 import time
 import datetime
+import threading
 
 import requests
 from flask import Flask, request, jsonify, session
 from flask_cors import CORS, cross_origin
 from flask_sqlalchemy import SQLAlchemy
+
 
 app = Flask(__name__)
 CORS(app)
@@ -89,6 +91,42 @@ class Uptime(db.Model):
         self.data_type = data_type
         self.time = time
         self.value = value
+
+
+@app.before_first_request
+def activate_job():
+    def get_task_response_times():
+        """
+        Runs every couple of minutes, pings every host for task, records the
+        response times in the uptime_monitor database
+        """
+        threading.Timer(3, get_task_response_times).start()
+        tasks = parse_task_as_list(Task.query.all())
+        for task in tasks:
+            if task['target'][0:4].lower() != "http":
+                target = "http://" + task['target']
+            else:
+                target = task['target']
+            try:
+                ping_time = requests.get(target, headers={'Cache-Control': 'no-cache'}).elapsed.total_seconds() * 1000
+            except:
+                ping_time = -1
+            new_uptime = Uptime(task_id=task['uid'],
+                                data_type=1,
+                                time=int(time.time()),
+                                value=ping_time)
+            print(parse_uptime(new_uptime))
+            num = Uptime.query.filter_by(task_id=task['uid']).count()
+            while num > 5:
+                to_delete = Uptime.query.filter_by(task_id=task['uid']).order_by(Uptime.time.asc()).first()
+                db.session.delete(to_delete)
+                db.session.flush()
+                db.session.commit()
+                num = Uptime.query.filter_by(task_id=task['uid']).count()
+            db.session.add(new_uptime)
+            db.session.flush()
+            db.session.commit()
+    get_task_response_times()
 
 
 @app.route('/', methods=['GET'])
@@ -389,17 +427,17 @@ def get_latest_response_time():
     return latest_uptime_json(tasks), 200
 
 
-@app.route('/uptimes/<task_id>', methods=['GET'])
+@app.route('/uptimes/<task_id>', methods=['GET', 'PUT'])
 def get_data(task_id):
     """
     Returns all uptime data for the task associated with <task_id>
     """
-    uptime = Uptime.query.filter_by(task_id=task_id)
-    if (uptime):
-        return parse_uptimes_as_json(uptime), 200
-    else:
-        return "Task Doesn't Exist!", 404
-
+    if request.method == 'GET':
+        uptime = Uptime.query.filter_by(task_id=task_id)
+        if (uptime):
+            return parse_uptimes_as_json(uptime), 200
+        else:
+            return "Task Doesn't Exist!", 404
 
 
 def parse_uptime(uptime):
@@ -438,6 +476,19 @@ def parse_uptimes_as_json(uptimes: list):
     for uptime in uptimes:
         return_val.append(parse_uptime(uptime))
     return jsonify(return_val)
+
+
+def parse_uptimes_as_list(uptimes: list):
+    """
+    Accepts a list of uptimes and then translates it to a jsonified list of
+    uptime objects
+    :param uptimes: uptimes to transform
+    :return: list of uptime objects
+    """
+    return_val = [];
+    for uptime in uptimes:
+        return_val.append(parse_uptime(uptime))
+    return return_val
 
 
 def parse_settings_as_json(settings: list):
