@@ -98,9 +98,23 @@ def activate_job():
     def get_task_response_times():
         """
         Runs every couple of minutes, pings every host for task, records the
-        response times in the uptime_monitor database
+        response times in the uptime_monitor database.
+
+        Value 'monitor_refresh' in settings specifies number of seconds between
+        response measuring
+
+        Value 'max_responses_displayed' specifies the maximum number of
+        responses that should be displayed on the frontend
+
+        Value 'max-responses_recorded' specifies the maximum number of
+        responses that should be recorded in the database.
         """
-        threading.Timer(3, get_task_response_times).start()
+        if Setting.query.filter_by(name="monitor_refresh").first():
+            refresh_time = return_setting_json(Setting.query.filter_by(name="monitor_refresh").first())['value']
+            print(refresh_time)
+        else:
+            refresh_time = 600
+        threading.Timer(refresh_time, get_task_response_times).start()
         tasks = parse_task_as_list(Task.query.all())
         for task in tasks:
             if task['target'][0:4].lower() != "http":
@@ -117,7 +131,11 @@ def activate_job():
                                 value=ping_time)
             print(parse_uptime(new_uptime))
             num = Uptime.query.filter_by(task_id=task['uid']).count()
-            while num > 5:
+            if Setting.query.filter_by(name="max_responses_recorded").first():
+                max_responses_recorded = int(return_setting_json(Setting.query.filter_by(name="max_responses_recorded").first())['value'])
+            else:
+                max_responses_recorded = 1000
+            while (num > max_responses_recorded) and (max_responses_recorded != 0):
                 to_delete = Uptime.query.filter_by(task_id=task['uid']).order_by(Uptime.time.asc()).first()
                 db.session.delete(to_delete)
                 db.session.flush()
