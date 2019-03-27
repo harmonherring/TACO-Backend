@@ -112,7 +112,7 @@ def activate_job():
         # If monitor_interval setting is set, use the associated value
         if Setting.query.filter_by(name="monitor_interval").first():
             refresh_time = return_setting_json(Setting.query.filter_by(name="monitor_interval").first())['value']
-            print(refresh_time)
+            refresh_time = int(refresh_time)
         else:
             refresh_time = 600
         threading.Timer(refresh_time, get_task_response_times).start()
